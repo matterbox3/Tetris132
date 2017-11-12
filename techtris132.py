@@ -374,24 +374,24 @@ Z_SHAPE_TEMPLATE = [['.....',
                      '.....']]
                    
 
-PIECES = {'J': S_SHAPE_TEMPLATE,
-          'j': S_SHAPE_TEMPLATE,
-          'L': S_SHAPE_TEMPLATE,
-          'l': S_SHAPE_TEMPLATE,
-          'F': S_SHAPE_TEMPLATE,
-          'f': Z_SHAPE_TEMPLATE,
-          'D': J_SHAPE_TEMPLATE,
-          'd': L_SHAPE_TEMPLATE,
-          'K': I_SHAPE_TEMPLATE,
-          'k': O_SHAPE_TEMPLATE,
-          'I': T_SHAPE_TEMPLATE,
-          'C': S_SHAPE_TEMPLATE,
-          'T': S_SHAPE_TEMPLATE,
-          'W': S_SHAPE_TEMPLATE,
-          't': S_SHAPE_TEMPLATE,
-          'U': S_SHAPE_TEMPLATE,
+PIECES = {'J': J_SHAPE_TEMPLATE,
+          'j': j_SHAPE_TEMPLATE,
+          'L': L_SHAPE_TEMPLATE,
+          'l': l_SHAPE_TEMPLATE,
+          'F': F_SHAPE_TEMPLATE,
+          'f': f_SHAPE_TEMPLATE,
+          'D': D_SHAPE_TEMPLATE,
+          'd': d_SHAPE_TEMPLATE,
+          'K': K_SHAPE_TEMPLATE,
+          'k': k_SHAPE_TEMPLATE,
+          'I': I_SHAPE_TEMPLATE,
+          'C': C_SHAPE_TEMPLATE,
+          'T': T_SHAPE_TEMPLATE,
+          'W': W_SHAPE_TEMPLATE,
+          't': t_SHAPE_TEMPLATE,
+          'U': U_SHAPE_TEMPLATE,
           'S': S_SHAPE_TEMPLATE,
-          'Z': S_SHAPE_TEMPLATE,}
+          'Z': Z_SHAPE_TEMPLATE,}
 
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
@@ -402,15 +402,12 @@ def main():
     BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
     pygame.display.set_caption('Trietris')
 
-    showTextScreen('Trietris')
+    showTextScreen('Techtris')
     while True: # game loop
-        #if random.randint(0, 1) == 0:
-            #pygame.mixer.music.load('tetrisb.mid')
-        #else:
-            #pygame.mixer.music.load('tetrisc.mid')
-        #pygame.mixer.music.play(-1, 0.0)
+        pygame.mixer.music.load('song.mp3')
+        pygame.mixer.music.play(-1, 0.0)
         runGame()
-        #pygame.mixer.music.stop()
+        pygame.mixer.music.stop()
         showTextScreen('Game Over')
 
 

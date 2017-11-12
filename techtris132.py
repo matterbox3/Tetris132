@@ -3,6 +3,8 @@
 
 import random, time, pygame, sys, RPi.GPIO as GPIO
 from pygame.locals import *
+from gpiozero import Button
+from time import sleep
 
 middle = 25
 right = 22
@@ -419,7 +421,7 @@ def main():
 
     showTextScreen('Techtris')
     while True: # game loop
-        pygame.mixer.music.load('song.mp3')
+        pygame.mixer.music.load('fightsong.mp3')
         pygame.mixer.music.play(-1, 0.0)
         runGame()
         pygame.mixer.music.stop()

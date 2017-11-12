@@ -393,7 +393,6 @@ PIECES = {'J': S_SHAPE_TEMPLATE,
           'S': S_SHAPE_TEMPLATE,
           'Z': S_SHAPE_TEMPLATE,}
 
-
 def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
     pygame.init()
@@ -401,9 +400,9 @@ def main():
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
-    pygame.display.set_caption('TECH-tris')
+    pygame.display.set_caption('Trietris')
 
-    showTextScreen('TECH-tris')
+    showTextScreen('Trietris')
     while True: # game loop
         #if random.randint(0, 1) == 0:
             #pygame.mixer.music.load('tetrisb.mid')
@@ -416,12 +415,12 @@ def main():
 
 
 def runGame():
-    # setup board and functions for moving pieces in game
+    # setup variables for the start of the game
     board = getBlankBoard()
     lastMoveDownTime = time.time()
     lastMoveSidewaysTime = time.time()
     lastFallTime = time.time()
-    movingDown = False 
+    movingDown = False # note: there is no movingUp variable
     movingLeft = False
     movingRight = False
     score = 0
@@ -432,24 +431,24 @@ def runGame():
 
     while True: # game loop
         if fallingPiece == None:
-            # No falling piece in play, start a new piece at the top
+            # No falling piece in play, so start a new piece at the top
             fallingPiece = nextPiece
             nextPiece = getNewPiece()
-            lastFallTime = time.time() # resets the lastFallTime function
+            lastFallTime = time.time() # reset lastFallTime
 
             if not isValidPosition(board, fallingPiece):
-                return # returns game over
+                return # can't fit a new piece on the board, so game over
 
         checkForQuit()
         for event in pygame.event.get(): # event handling loop
             if event.type == KEYUP:
                 if (event.key == K_p):
                     # Pausing the game
-                    showTextScreen('Paused') 
+                    showTextScreen('Paused') # pause until a key press
                     lastFallTime = time.time()
                     lastMoveDownTime = time.time()
                     lastMoveSidewaysTime = time.time()
-                elif (event.key == K_LEFT or event.key == K_a):
+                elif (event.key == K_LEFT or event.key == K_a or left.is_pressed):
                     movingLeft = False
                 elif (event.key == K_RIGHT or event.key == K_d):
                     movingRight = False
@@ -458,16 +457,16 @@ def runGame():
 
             elif event.type == KEYDOWN:
                 # moving the piece sideways
-                if (event.key == K_LEFT or event.key == K_a) and isValidPosition(board, fallingPiece, adjX=-1):
+                if (event.key == K_LEFT or event.key == K_a or left.is_pressed) and isValidPosition(board, fallingPiece, adjX=1):
                     fallingPiece['x'] += 1
-                    movingLeft = True
-                    movingRight = False
+                    movingLeft = False
+                    movingRight = True
                     lastMoveSidewaysTime = time.time()
 
-                elif (event.key == K_RIGHT or event.key == K_d) and isValidPosition(board, fallingPiece, adjX=1):
+                elif (event.key == K_RIGHT or event.key == K_d) and isValidPosition(board, fallingPiece, adjX=-1):
                     fallingPiece['x'] -= 1
-                    movingRight = True
-                    movingLeft = False
+                    movingRight = False
+                    movingLeft = True
                     lastMoveSidewaysTime = time.time()
 
                 # rotating the piece (if there is room to rotate)
@@ -497,7 +496,23 @@ def runGame():
                             break
                     fallingPiece['y'] += i - 1
 
-        # handle moving the piece because of user input
+        if (left.is_pressed) and (isValidPosition(board, fallingPiece, adjX=1)):
+            fallingPiece['x'] += 1
+
+        if (right.is_pressed) and (isValidPosition(board, fallingPiece, adjX=-1)):
+            fallingPiece['x'] -= 1
+
+        if (middle.is_pressed):
+            fallingPiece['rotation'] = (fallingPiece['rotation'] + 1) % len(PIECES[fallingPiece['shape']])
+            sleep(0.1)
+            if not isValidPosition(board, fallingPiece):
+                fallingPiece['rotation'] = (fallingPiece['rotation'] - 1) % len(PIECES[fallingPiece['shape']])
+                sleep(0.1)
+    
+    
+        
+
+    # handle moving the piece because of user input
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
             if movingLeft and isValidPosition(board, fallingPiece, adjX=-1):
                 fallingPiece['x'] -= 1
@@ -740,3 +755,4 @@ def drawNextPiece(piece):
 
 if __name__ == '__main__':
     main()
+

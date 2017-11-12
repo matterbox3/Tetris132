@@ -4,6 +4,21 @@
 import random, time, pygame, sys, RPi.GPIO as GPIO
 from pygame.locals import *
 
+middle = 25
+right = 22
+left = 27
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(17, GPIO.OUT)
+GPIO.setup(middle, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(right, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+GPIO.setup(left, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+
+
+left = Button(left)
+right = Button(right)
+middle = Button(middle)
+
 FPS = 25
 WINDOWWIDTH = 720
 WINDOWHEIGHT = 430

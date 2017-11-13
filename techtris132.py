@@ -6,21 +6,23 @@ from pygame.locals import *
 from gpiozero import Button
 from time import sleep
 
+#setting GPIO pin values
 middle = 25
 right = 22
 left = 27
 
+#Initializing GPIO Ports
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(middle, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(right, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 GPIO.setup(left, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-
 left = Button(left)
 right = Button(right)
 middle = Button(middle)
 
+#Setting Variables
 FPS = 25
 WINDOWWIDTH = 720
 WINDOWHEIGHT = 430
@@ -35,7 +37,9 @@ MOVEDOWNFREQ = 2.0
 XMARGIN = int((WINDOWWIDTH - BOARDWIDTH * BOXSIZE) / 2)
 TOPMARGIN = WINDOWHEIGHT - (BOARDHEIGHT * BOXSIZE) - 5
 
-#               R    G    B
+
+
+#Colors        R    G    B
 WHITE       = (255, 255, 255)
 GRAY        = (185, 185, 185)
 BLACK       = (  0,   0,   0)
@@ -44,6 +48,7 @@ LIGHTRED    = (175,  20,  20)
 BLUE        = (  0,   0, 155)
 LIGHTBLUE   = ( 20,  20, 175)
 
+#Setting Colors
 BORDERCOLOR = RED
 BGCOLOR = WHITE
 TEXTCOLOR = RED
@@ -55,6 +60,7 @@ assert len(COLORS) == len(LIGHTCOLORS) # each color must have light color
 TEMPLATEWIDTH = 5
 TEMPLATEHEIGHT = 5
 
+#All Techtris Pieces
 J_SHAPE_TEMPLATE = [['..O..',
                      '..O..',
                      '..OO.',
@@ -417,10 +423,10 @@ def main():
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     BASICFONT = pygame.font.Font('freesansbold.ttf', 18)
     BIGFONT = pygame.font.Font('freesansbold.ttf', 100)
-    pygame.display.set_caption('Trietris')
+    pygame.display.set_caption('Techtris')
 
     showTextScreen('Techtris')
-    while True: # game loop
+    while True: #Starts music and runs game
         pygame.mixer.music.load('fightsong.mp3')
         pygame.mixer.music.play(-1, 0.0)
         runGame()
@@ -429,12 +435,12 @@ def main():
 
 
 def runGame():
-    # setup variables for the start of the game
+    # setup variables for game
     board = getBlankBoard()
     lastMoveDownTime = time.time()
     lastMoveSidewaysTime = time.time()
     lastFallTime = time.time()
-    movingDown = False # note: there is no movingUp variable
+    movingDown = False
     movingLeft = False
     movingRight = False
     score = 0
@@ -443,22 +449,22 @@ def runGame():
     fallingPiece = getNewPiece()
     nextPiece = getNewPiece()
 
-    while True: # game loop
+    while True: #Game loop
         if fallingPiece == None:
-            # No falling piece in play, so start a new piece at the top
+            # No falling piece in play, starts new piece
             fallingPiece = nextPiece
             nextPiece = getNewPiece()
             lastFallTime = time.time() # reset lastFallTime
 
             if not isValidPosition(board, fallingPiece):
-                return # can't fit a new piece on the board, so game over
+                return #Game over
 
         checkForQuit()
-        for event in pygame.event.get(): # event handling loop
+        for event in pygame.event.get():
             if event.type == KEYUP:
                 if (event.key == K_p):
-                    # Pausing the game
-                    showTextScreen('Paused') # pause until a key press
+                    #Pausing the game
+                    showTextScreen('Paused') #Pause until key is pressed
                     lastFallTime = time.time()
                     lastMoveDownTime = time.time()
                     lastMoveSidewaysTime = time.time()
@@ -470,7 +476,7 @@ def runGame():
                     movingDown = False
 
             elif event.type == KEYDOWN:
-                # moving the piece sideways
+                #Moves piece left and right
                 if (event.key == K_LEFT or event.key == K_a or left.is_pressed) and isValidPosition(board, fallingPiece, adjX=1):
                     fallingPiece['x'] += 1
                     movingLeft = False
@@ -483,7 +489,7 @@ def runGame():
                     movingLeft = True
                     lastMoveSidewaysTime = time.time()
 
-                # rotating the piece (if there is room to rotate)
+                #Rotates piece
                 elif (event.key == K_UP or event.key == K_w):
                     fallingPiece['rotation'] = (fallingPiece['rotation'] + 1) % len(PIECES[fallingPiece['shape']])
                     if not isValidPosition(board, fallingPiece):
@@ -493,14 +499,14 @@ def runGame():
                     if not isValidPosition(board, fallingPiece):
                         fallingPiece['rotation'] = (fallingPiece['rotation'] + 1) % len(PIECES[fallingPiece['shape']])
 
-                # making the piece fall faster with the down key
+                #Increases fall speed
                 elif (event.key == K_DOWN or event.key == K_s):
                     movingDown = True
                     if isValidPosition(board, fallingPiece, adjY=1):
                         fallingPiece['y'] += 1
                     lastMoveDownTime = time.time()
 
-                # move the current piece all the way down
+                #Auto drop
                 elif event.key == K_SPACE:
                     movingDown = False
                     movingLeft = False
@@ -526,7 +532,7 @@ def runGame():
     
         
 
-    # handle moving the piece because of user input
+    #Moves piece
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
             if movingLeft and isValidPosition(board, fallingPiece, adjX=-1):
                 fallingPiece['x'] -= 1
@@ -538,21 +544,21 @@ def runGame():
             fallingPiece['y'] += 1
             lastMoveDownTime = time.time()
 
-        # let the piece fall if it is time to fall
+        #Piece falls
         if time.time() - lastFallTime > fallFreq:
-            # see if the piece has landed
+            #See if the piece has landed
             if not isValidPosition(board, fallingPiece, adjY=1):
-                # falling piece has landed, set it on the board
+                #Salling piece has landed, set it on the board
                 addToBoard(board, fallingPiece)
                 score += removeCompleteLines(board)
                 level, fallFreq = calculateLevelAndFallFreq(score)
                 fallingPiece = None
             else:
-                # piece did not land, just move the piece down
+                #Piece did not land, just move the piece down
                 fallingPiece['y'] += 1
                 lastFallTime = time.time()
 
-        # drawing everything on the screen
+        #Screen display
         DISPLAYSURF.fill(BGCOLOR)
         drawBoard(board)
         drawStatus(score, level)
@@ -575,8 +581,7 @@ def terminate():
 
 
 def checkForKeyPress():
-    # Go through event queue looking for a KEYUP event.
-    # Grab KEYDOWN events to remove them from the event queue.
+    #Checks if key is pressed
     checkForQuit()
 
     for event in pygame.event.get([KEYDOWN, KEYUP]):
@@ -587,19 +592,17 @@ def checkForKeyPress():
 
 
 def showTextScreen(text):
-    # This function displays large text in the
-    # center of the screen until a key is pressed.
-    # Draw the text drop shadow
+    #Initial text until key is pressed
     titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTSHADOWCOLOR)
     titleRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2))
     DISPLAYSURF.blit(titleSurf, titleRect)
 
-    # Draw the text
+    #Draw the text
     titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTCOLOR)
     titleRect.center = (int(WINDOWWIDTH / 2) - 3, int(WINDOWHEIGHT / 2) - 3)
     DISPLAYSURF.blit(titleSurf, titleRect)
 
-    # Draw the additional "Press a key to play." text.
+    #Draw "Press a key to play."
     pressKeySurf, pressKeyRect = makeTextObjs('Press a key to play.', BASICFONT, TEXTCOLOR)
     pressKeyRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 100)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
@@ -610,23 +613,23 @@ def showTextScreen(text):
 
 
 def checkForQuit():
-    for event in pygame.event.get(QUIT): # get all the QUIT events
-        terminate() # terminate if any QUIT events are present
-    for event in pygame.event.get(KEYUP): # get all the KEYUP events
+  #Terminates game if any quit event is pressed
+    for event in pygame.event.get(QUIT):
+        terminate()
+    for event in pygame.event.get(KEYUP):
         if event.key == K_ESCAPE:
-            terminate() # terminate if the KEYUP event was for the Esc key
-        pygame.event.post(event) # put the other KEYUP event objects back
+            terminate() 
+        pygame.event.post(event)
 
 
 def calculateLevelAndFallFreq(score):
-    # Based on the score, return the level the player is on and
-    # how many seconds pass until a falling piece falls one space.
+    #Increases level
     level = int(score / 10) + 1
     fallFreq = 0.27 - (level * 0.02)
     return level, fallFreq
 
 def getNewPiece():
-    # return a random new piece in a random rotation and color
+    #Returns a new piece
     shape = random.choice(list(PIECES.keys()))
     newPiece = {'shape': shape,
                 'rotation': random.randint(0, len(PIECES[shape]) - 1),
@@ -637,7 +640,7 @@ def getNewPiece():
 
 
 def addToBoard(board, piece):
-    # fill in the board based on piece's location, shape, and rotation
+    #Fill's into board
     for x in range(TEMPLATEWIDTH):
         for y in range(TEMPLATEHEIGHT):
             if PIECES[piece['shape']][piece['rotation']][y][x] != BLANK:
@@ -645,7 +648,7 @@ def addToBoard(board, piece):
 
 
 def getBlankBoard():
-    # create and return a new blank board data structure
+    #Creates new blank board
     board = []
     for i in range(BOARDWIDTH):
         board.append([BLANK] * BOARDHEIGHT)
@@ -657,7 +660,7 @@ def isOnBoard(x, y):
 
 
 def isValidPosition(board, piece, adjX=0, adjY=0):
-    # Return True if the piece is within the board and not colliding
+    #True if piece is on board and not colliding
     for x in range(TEMPLATEWIDTH):
         for y in range(TEMPLATEHEIGHT):
             isAboveBoard = y + piece['y'] + adjY < 0
@@ -670,7 +673,7 @@ def isValidPosition(board, piece, adjX=0, adjY=0):
     return True
 
 def isCompleteLine(board, y):
-    # Return True if the line filled with boxes with no gaps.
+    #True if full line
     for x in range(BOARDWIDTH):
         if board[x][y] == BLANK:
             return False
@@ -678,38 +681,30 @@ def isCompleteLine(board, y):
 
 
 def removeCompleteLines(board):
-    # Remove any completed lines on the board, move everything above them down, and return the number of complete lines.
+    #Removes completed lines
     numLinesRemoved = 0
-    y = BOARDHEIGHT - 1 # start y at the bottom of the board
+    y = BOARDHEIGHT - 1
     while y >= 0:
         if isCompleteLine(board, y):
-            # Remove the line and pull boxes down by one line.
+            #Removes line and pull boxes down
             for pullUpY in range(y, 0, -1):
                 for x in range(BOARDWIDTH):
                     board[x][pullUpY] = board[x][pullUpY-1]
-            # Set very top line to blank.
+            #Sets top line to blank
             for x in range(BOARDWIDTH):
                 board[x][0] = BLANK
             numLinesRemoved += 1
-            # Note on the next iteration of the loop, y is the same.
-            # This is so that if the line that was pulled down is also
-            # complete, it will be removed.
         else:
-            y -= 1 # move on to check next row up
+            y -= 1 #Check's next row up
     return numLinesRemoved
 
 
 def convertToPixelCoords(boxx, boxy):
-    # Convert the given xy coordinates of the board to xy
-    # coordinates of the location on the screen.
     return (XMARGIN + (boxx * BOXSIZE)), (TOPMARGIN + (boxy * BOXSIZE))
 
 
 def drawBox(boxx, boxy, color, pixelx=None, pixely=None):
-    # draw a single box (each tetromino piece has four boxes)
-    # at xy coordinates on the board. Or, if pixelx & pixely
-    # are specified, draw to the pixel coordinates stored in
-    # pixelx & pixely (this is used for the "Next" piece).
+    #Draw single Techtris piece box
     if color == BLANK:
         return
     if pixelx == None and pixely == None:
@@ -719,25 +714,25 @@ def drawBox(boxx, boxy, color, pixelx=None, pixely=None):
 
 
 def drawBoard(board):
-    # draw the border around the board
+    #Draws outside border
     pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (XMARGIN - 3, TOPMARGIN - 7, (BOARDWIDTH * BOXSIZE) + 8, (BOARDHEIGHT * BOXSIZE) + 8), 5)
 
-    # fill the background of the board
+    #Fills in background
     pygame.draw.rect(DISPLAYSURF, BGCOLOR, (XMARGIN, TOPMARGIN, BOXSIZE * BOARDWIDTH, BOXSIZE * BOARDHEIGHT))
-    # draw the individual boxes on the board
+    #Draws individual boxes
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
             drawBox(x, y, board[x][y])
 
 
 def drawStatus(score, level):
-    # draw the score text
+    #Score
     scoreSurf = BASICFONT.render('Score: %s' % score, True, TEXTCOLOR)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH - 150, 20)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
-    # draw the level text
+    #Level
     levelSurf = BASICFONT.render('Level: %s' % level, True, TEXTCOLOR)
     levelRect = levelSurf.get_rect()
     levelRect.topleft = (WINDOWWIDTH - 150, 50)
@@ -745,12 +740,10 @@ def drawStatus(score, level):
 
 
 def drawPiece(piece, pixelx=None, pixely=None):
+  #Draws pieces by individual boxes
     shapeToDraw = PIECES[piece['shape']][piece['rotation']]
     if pixelx == None and pixely == None:
-        # if pixelx & pixely hasn't been specified, use the location stored in the piece data structure
         pixelx, pixely = convertToPixelCoords(piece['x'], piece['y'])
-
-    # draw each of the boxes that make up the piece
     for x in range(TEMPLATEWIDTH):
         for y in range(TEMPLATEHEIGHT):
             if shapeToDraw[y][x] != BLANK:
@@ -758,12 +751,10 @@ def drawPiece(piece, pixelx=None, pixely=None):
 
 
 def drawNextPiece(piece):
-    # draw the "next" text
     nextSurf = BASICFONT.render('Next:', True, TEXTCOLOR)
     nextRect = nextSurf.get_rect()
     nextRect.topleft = (WINDOWWIDTH - 120, 80)
     DISPLAYSURF.blit(nextSurf, nextRect)
-    # draw the "next" piece
     drawPiece(piece, pixelx=WINDOWWIDTH-120, pixely=100)
 
 
